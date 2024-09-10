@@ -1,16 +1,18 @@
 import express from "express";
 import path from "path";
 const app = express();
-import { addToCart, getOrCreateCart } from "./model/cart.js";
+import { addToCart, getOrCreateCart, deleteProductById } from "./model/cart.js";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use((req, res, next) => {
   req.userId = 1;
-  next()
+  next();
 });
 
 const products = [
@@ -30,26 +32,38 @@ const products = [
 ];
 
 app.get("/", (req, res) => {
+  const productHtml = products
+    .map(
+      (product) => `
+    <div>
+      <h2>${product.name}</h2>
+      <p><strong>Price:</strong> $${product.price}</p>
+      <p>${product.description}</p>
+      <a href="/product/${product.id}">View Product</a>
+    </div>
+  `
+    )
+    .join("");
 
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>A shopping website</title>
-        <link rel="stylesheet" href="/styles.css">
-      </head>
-      <body>
-        <div class="container">
-          <h1>Welcome to shopping cart</h1>  
-          <a href="/cart">look at your cart</a>
-        </div>
-      </body>
-      </html>
-    `);
-  }
-);
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Home</title>
+      <link rel="stylesheet" href="/styles.css">
+    </head>
+    <body>
+      <div class="container">
+        <h1>Welcome to Our Store</h1>
+        <a href="/cart" style="background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Cart</a>
+        ${productHtml || "<p>No products available</p>"}
+      </div>
+    </body>
+    </html>
+  `);
+});
 
 app.get("/product/:id", (req, res) => {
   const productId = req.params.id;
@@ -73,6 +87,7 @@ app.get("/product/:id", (req, res) => {
           <form action="/cart/add/${product.id}" method="POST">
             <button type="submit">Add to Cart</button>
           </form>
+       
           <a href="/">Go Back</a>
         </div>
       </body>
@@ -102,6 +117,9 @@ app.get("/cart", (req, res) => {
       (item) => `
     <div>
       <p>${item.product.name} - $${item.product.price} (Quantity: ${item.quantity})</p>
+      <form action="/cart/delete/${item.product.id}" method="POST" style="display:inline;">
+        <button type="submit" style="background-color: red;">Delete</button>
+      </form>
     </div>
   `
     )
@@ -126,6 +144,14 @@ app.get("/cart", (req, res) => {
     </html>
   `);
 });
+
+app.post("/cart/delete/:id", (req, res) => {
+  const productId = req.params.id;
+  const cart = getOrCreateCart(req.userId);
+  cart.items = cart.items.filter((item) => item.product.id != productId);
+  res.redirect("/cart");
+});
+
 
 const port = 3000;
 app.listen(port, () => {
