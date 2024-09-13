@@ -1,85 +1,100 @@
 import express from "express";
-import { createConnection } from "mysql2";
+import { Sequelize, DataTypes } from "sequelize";
 
 const app = express();
 const port = 3000;
 
-const db = createConnection({
+const sequelize = new Sequelize("dummy_db", "root", "REDACTED", {
   host: "localhost",
-  user: "root",
-  password: "REDACTED",
-  database: "dummy_db",
+  dialect: "mysql",
 });
 
-db.connect((err) => {
-  if (err) {
-    console.log("Database connection failed: ", err);
-  } else {
-    console.log("Database connected successfully.");
+sequelize
+  .authenticate()
+  .then(() => console.log("Database connected with Sequelize"))
+  .catch((err) => console.log("Error: " + err));
+
+const Product = sequelize.define(
+  "Product",
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+  },
+  {
+    timestamps: false,
   }
-});
+);
 
-app.get("/", (req, res) => {
-  const sql = "SELECT * FROM products";
+sequelize.sync();
 
-  db.query(sql, (err, results) => {
-    if (err) throw err;
-
+app.get("/", async (req, res) => {
+  try {
+    const products = await Product.findAll();
     let html = `
       <h1>Products List</h1>
-      <table border="1" cellpadding="8">
+      <table border="1" cellpadding="10">
         <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
             <th>Price</th>
             <th>Description</th>
-            <th>Created At</th>
           </tr>
         </thead>
         <tbody>`;
 
-    results.forEach((product) => {
+    products.forEach((product) => {
       html += `
         <tr>
           <td>${product.id}</td>
           <td>${product.name}</td>
           <td>${product.price}</td>
           <td>${product.description}</td>
-          <td>${product.created_at}</td>
         </tr>`;
     });
 
     html += `
         </tbody>
       </table>`;
-
     res.send(html);
-  });
+  } catch (err) {
+    console.error("Error fetching products: ", err);
+    res.status(500).send("Error fetching products");
+  }
 });
 
-app.get("/addproduct", (req, res) => {
-  const product = {
-    name: "Product 1",
-    price: 100,
-    description: "This is product 1",
-  };
-  const sql = "INSERT INTO products SET ?";
-
-  db.query(sql, product, (err, result) => {
-    if (err) throw err;
+app.get("/addproduct", async (req, res) => {
+  try {
+    const product = await Product.create({
+      name: "Product 1",
+      price: 100,
+      description: "This is product 1",
+    });
     res.send("Product added successfully");
-  });
+  } catch (err) {
+    res.send("Error adding product");
+  }
 });
 
-app.get("/updateproduct/:id", (req, res) => {
-  const newPrice = 150;
-  const sql = `UPDATE products SET price = ${newPrice} WHERE id = ${req.params.id}`;
-
-  db.query(sql, (err, result) => {
-    if (err) throw err;
+app.get("/updateproduct/:id", async (req, res) => {
+  try {
+    const product = await Product.update(
+      { price: 150 },
+      { where: { id: req.params.id } }
+    );
     res.send("Product updated successfully");
-  });
+  } catch (err) {
+    res.send("Error updating product");
+  }
 });
 
 app.listen(port, () => {
