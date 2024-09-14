@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Product catalogue application</title>
+    <style>
+        input,
+        select {
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 10px;
+            width: 80px;
+        }
+
+        #expenseList {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <label for="sellingPrice">Selling Price:</label>
+    <input id="sellingPrice" type="number" name="sellingPrice">
+    <label for="productName">Product Name:</label>
+    <input id="productName" type="text" name="productName">
+    <label for="chooseCategory">Choose a Category:</label>
+    <select title="Choose Category" id="chooseCategory">
+        <option value="Food">Food</option>
+        <option value="Electronics">Electronics</option>
+        <option value="SkinCare">Skin care</option>
+    </select>
+    <button id="addProduct">Add Product</button>
+    <h1>Products</h1>
+    <div>
+        <h2>Electronic Items</h2>
+        <ul id="electronics">
+        </ul>
+    </div>
+    <div>
+        <h2>Food Items</h2>
+        <ul id="food">
+        </ul>
+    </div>
+    <div>
+        <h2>Skincare Items</h2>
+        <ul id="skincare">
+        </ul>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let foodField = document.getElementById('food');
+        let electronicField = document.getElementById('electronics');
+        let skincareField = document.getElementById('skincare')
+        const apiUrl = '/api/products';
+        document.addEventListener('DOMContentLoaded', listMaker)
+        async function listMaker() {
+            foodField.innerHTML = '';
+            electronicField.innerHTML = '';
+            skincareField.innerHTML = '';
+            try {
+                response = await axios.get(apiUrl);
+                response.data.forEach((listItem) => {
+                    let singleList = document.createElement('li');
+                    singleList.textContent = `₹${listItem.price} - ${listItem.category} - ${listItem.name}`;
+                    let delButton = document.createElement('button');
+                    delButton.textContent = 'Delete Order';
+                    delButton.onclick = () => deleter(listItem._id);
+                    singleList.appendChild(delButton);
+                    if (listItem.category == 'Food') {
+                        document.getElementById('food').appendChild(singleList);
+                    }
+                    else if (listItem.category == "Electronics") {
+                        document.getElementById('electronics').appendChild(singleList);
+                    }
+                    else {
+                        document.getElementById('skincare').appendChild(singleList);
+                    }
+                })
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        async function deleter(id) {
+            try {
+                await axios.delete(`${apiUrl}/${id}`);
+                listMaker();
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        document.getElementById('addProduct').addEventListener('click', async function (event) {
+            let product = {
+                price: parseFloat(document.getElementById('sellingPrice').value),
+                name: document.getElementById('productName').value,
+                category: document.getElementById('chooseCategory').value
+            }
+            if (!product.price || !product.name || !product.category) {
+                alert('Please fill in all the fields.');
+                return;
+            }
+            try {
+                await axios.post(apiUrl, product);
+                listMaker();
+            }
+            catch (error) {
+                console.log(error);
+            }
+        })
+    </script>
+</body>
+
+</html>
