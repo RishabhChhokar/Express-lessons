@@ -9,36 +9,53 @@ const sequelize = new Sequelize("dummy_db", "root", "REDACTED", {
   dialect: "mysql",
 });
 
+
 sequelize
   .authenticate()
   .then(() => console.log("Database connected with Sequelize"))
   .catch((err) => console.log("Error: " + err));
 
-const Product = sequelize.define(
-  "Product",
-  {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-    },
-  },
-  {
-    timestamps: false,
-  }
-);
 
-sequelize.sync();
+const User = sequelize.define("User", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+});
+
+
+const Product = sequelize.define("Product", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+  },
+});
+
+
+User.hasMany(Product, { foreignKey: "userId" });
+Product.belongsTo(User, { foreignKey: "userId" });
+
+
+sequelize
+  .sync({ force: true })
+  .then(() => console.log("Tables synced successfully"))
+  .catch((err) => console.log("Error syncing tables: " + err));
+
 
 app.get("/", async (req, res) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.findAll({ include: User });
     let html = `
       <h1>Products List</h1>
       <table border="1" cellpadding="10">
@@ -48,6 +65,7 @@ app.get("/", async (req, res) => {
             <th>Name</th>
             <th>Price</th>
             <th>Description</th>
+            <th>User</th>
           </tr>
         </thead>
         <tbody>`;
@@ -59,6 +77,7 @@ app.get("/", async (req, res) => {
           <td>${product.name}</td>
           <td>${product.price}</td>
           <td>${product.description}</td>
+          <td>${product.User.name}</td>
         </tr>`;
     });
 
@@ -67,33 +86,28 @@ app.get("/", async (req, res) => {
       </table>`;
     res.send(html);
   } catch (err) {
-    console.error("Error fetching products: ", err);
-    res.status(500).send("Error fetching products");
+    res.send("Error fetching products");
   }
 });
 
-app.get("/addproduct", async (req, res) => {
+
+app.get("/adduserandproduct", async (req, res) => {
   try {
-    const product = await Product.create({
-      name: "Product 1",
-      price: 100,
-      description: "This is product 1",
+    const user = await User.create({
+      name: "Rishabh",
+      email: "Rishabh@yahoo.com",
     });
-    res.send("Product added successfully");
-  } catch (err) {
-    res.send("Error adding product");
-  }
-});
 
-app.get("/updateproduct/:id", async (req, res) => {
-  try {
-    const product = await Product.update(
-      { price: 150 },
-      { where: { id: req.params.id } }
-    );
-    res.send("Product updated successfully");
+    const product = await Product.create({
+      name: "watch",
+      price: 100,
+      description: "This is a titan watch",
+      userId: user.id,
+    });
+
+    res.send("User and Product added successfully");
   } catch (err) {
-    res.send("Error updating product");
+    res.send("Error adding user and product");
   }
 });
 
