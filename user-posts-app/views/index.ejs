@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Post App</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Submit a Post</h1>
+    <form action="/create-post" method="POST">
+      <input type="text" name="imageUrl" placeholder="Image URL" required>
+      <textarea name="description" placeholder="Description" required></textarea>
+      <button type="submit">Post</button>
+    </form>
+
+    <h1>Posts</h1>
+    <% posts.forEach(post => { %>
+      <div class="post">
+        <img src="<%= post.imageUrl %>" alt="Post Image">
+        <p><%= post.description %></p>
+
+        <h3>Comments:</h3>
+        <ul>
+          <% post.comments.forEach(comment => { %>
+            <li class="comment">
+              Anonymous: <span><%= comment.text %></span>
+            </li>
+          <% }) %>
+        </ul>
+
+        <form action="/create-comment" method="POST">
+          <input type="hidden" name="postId" value="<%= post.id %>">
+          <textarea name="text" placeholder="Enter your comment" required></textarea>
+          <button type="submit">Comment</button>
+        </form>
+      </div>
+    <% }) %>
+  </div>
+</body>
+</html>

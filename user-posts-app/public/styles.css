@@ -1,0 +1,87 @@
+body {
+  background-color: pink;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 10px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+
+.anonymous-label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+
+.post {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.post img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.post p {
+  text-align: left;
+}
+
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  text-align: left;
+}
+
+.comment {
+  margin-bottom: 4px;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.comment span {
+  font-weight: normal;
+}

@@ -1,0 +1,24 @@
+{
+  "type": "module",
+  "name": "user-posts-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "mysql2": "^3.11.3",
+    "save": "^2.9.0",
+    "sequelize": "^6.37.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
